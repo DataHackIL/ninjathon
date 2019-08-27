@@ -1,20 +1,20 @@
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express'
-import { importSchema } from 'graphql-import'
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
+
 import logger from './utilities/logger'
-
-const typeDefs = importSchema('schema.graphql')
-
 import emailResolvers from './handlers/email'
 import authenticationResolvers from './handlers/authentication'
+
+const typeDefs = readFileSync(join(__dirname, '../schema.graphql')).toString()
 const resolvers = merge(
     emailResolvers,
     authenticationResolvers
 )
-
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
 const app = express()

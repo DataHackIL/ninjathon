@@ -1,3 +1,6 @@
+# Created by https://www.gitignore.io/api/web,node,webstorm+all
+# Edit at https://www.gitignore.io/?templates=web,node,webstorm+all
+
 ### Node ###
 # Logs
 logs
@@ -41,6 +44,10 @@ dump_*.sql
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 dist/
+
+# SSL certificates and migrations
+certs/
+backups/
 
 # Dependency directories
 node_modules/

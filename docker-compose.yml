@@ -1,19 +1,43 @@
 version: '3.5'
 
+x-base: &base-service
+  stdin_open: true
+  tty: true
+  restart: always
+
 services:
+  registration:
+    <<: *base-service
+    container_name: registration
+    depends_on:
+      - hasura
+    build:
+      context: ./registration
+      dockerfile: Dockerfile
+
   services:
+    <<: *base-service
     container_name: services
-    ports:
-      - "3000:3000"
-    links:
-      - postgres:postgres
     build:
       context: ./services
       dockerfile: Dockerfile
     environment:
-      JWT_SECRET: "7hGQwy223vy8tUH4fbk5EndfthrqTNtHtuzQVE6nLQdGLknMHPAvADt6y7tr4s8LV"
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET}"
+
+  caddy:
+    <<: *base-service
+    container_name: caddy
+    image: abiosoft/caddy
+    environment:
+      ACME_AGREE: "true"
+    ports:
+      - "${ENDPOINT_PORT:-2015}:2015"
+    volumes:
+      - ./Caddyfile:/etc/Caddyfile
+      - ./certs:/root/.caddy
 
   postgres:
+    <<: *base-service
     container_name: postgres
     image: postgres
     environment:
@@ -22,45 +46,36 @@ services:
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
 
   hasura:
+    <<: *base-service
     container_name: hasura
-    image: hasura/graphql-engine:v1.0.0-beta.4
-    ports:
-      - "8080:8080"
+    image: hasura/graphql-engine:latest.cli-migrations
+    volumes:
+      - ./backups:/hasura-migrations
     depends_on:
-      - "postgres"
-      - "services"
-    restart: always
-    links:
-      - postgres:postgres
+      - postgres
+      - services
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:changeme@postgres:5432/postgres
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      HASURA_GRAPHQL_ADMIN_SECRET: datahacked
-      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS512", "key":"7hGQwy223vy8tUH4fbk5EndfthrqTNtHtuzQVE6nLQdGLknMHPAvADt6y7tr4s8LV"}'
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET:?HASURA_ADMIN_SECRET}
+      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS512", "key":"${JWT_SECRET:?JWT_SECRET}"}'
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
 
   pgadmin:
+    <<: *base-service
     container_name: pgadmin
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      SCRIPT_NAME: "/pgadmin"
     depends_on:
-      - "postgres"
-    links:
-      - postgres:postgres
+      - postgres
     volumes:
       - pgadmin:/root/.pgadmin
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    restart: unless-stopped
-
 
 volumes:
   postgres:
