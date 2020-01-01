@@ -10,7 +10,7 @@ import logger from './utilities/logger'
 import emailResolvers from './handlers/email'
 import authenticationResolvers from './handlers/authentication'
 
-const typeDefs = readFileSync(join(__dirname, '../schema.graphql')).toString()
+const typeDefs = readFileSync(join(__dirname, './schema.graphql')).toString()
 const resolvers = merge(
     emailResolvers,
     authenticationResolvers
