@@ -45,9 +45,9 @@ dump_*.sql
 build/Release
 dist/
 
-# SSL certificates and migrations
+# SSL certificates and dumps
 certs/
-backups/
+backups/data/
 
 # Dependency directories
 node_modules/

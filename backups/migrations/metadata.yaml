@@ -1,0 +1,14 @@
+allowlist: []
+functions: []
+query_collections: []
+remote_schemas:
+- comment: null
+  definition:
+    forward_client_headers: true
+    headers: []
+    timeout_seconds: 60
+    url: http://services:3000/graphql
+    url_from_env: null
+  name: services
+tables: []
+version: 2

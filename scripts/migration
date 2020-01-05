@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+function hasura() {
+  docker exec -i "$(docker-compose ps -q hasura)" /bin/hasura-cli --project hasura-migrations "$@"
+}
+
+function create() {
+  local name
+  name="$*"
+
+  if [ -z "$name" ]; then
+    echo $"Usage: ${0##*/} create (migration_name)"
+  else
+    hasura migrate create "$name" --from-server
+  fi
+
+}
+
+function apply() {
+  local version
+  version="$*"
+
+  if [ -z "$version" ]; then
+    echo $"Usage: ${0##*/} apply (migration_version or latest)"
+  else
+    if [ "$version" == "latest" ]; then
+      version=$(hasura migrate status | cut -d' ' -f1 | tail -n+2 | sort -r | head -n1)
+    fi
+    hasura migrate apply --version "$version"
+  fi
+}
+
+function status() {
+  hasura migrate status
+}
+
+case "$1" in
+create)
+  create "$2"
+  ;;
+
+apply)
+  apply "$2"
+  ;;
+
+status)
+  status
+  ;;
+*)
+  echo $"Usage: ${0##*/} {create (migration_name) | apply (migration_version or latest) | status}"
+  exit 1
+  ;;
+esac
