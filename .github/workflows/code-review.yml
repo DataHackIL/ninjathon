@@ -1,0 +1,16 @@
+name: Code Review
+on:
+  - pull_request
+  - pull_request_review
+  - pull_request_review_comment
+
+jobs:
+  build:
+    name: Danger JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Danger
+    uses: danger/danger-js@9.1.6
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
