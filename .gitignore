@@ -198,4 +198,7 @@ modules.xml
 # Sonarlint plugin
 .idea/sonarlint
 
+# Exclude danger
+!dangerfile.js
+
 # End of https://www.gitignore.io/api/web,node,webstorm+all
