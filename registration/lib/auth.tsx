@@ -1,17 +1,24 @@
 import cookie from 'js-cookie'
 import nextCookie from 'next-cookies'
 import Router from 'next/router'
+import { gql } from 'apollo-boost'
+import { apolloClient } from './apollo'
+import { decode } from 'jsonwebtoken'
 
-/**
- * Puts the JWT token in the cookie, set expiry to one day.
- */
-export const login = ({ token }, expires = 1) => {
+export const login = async ({ email, password }, expires = 1) => {
+    const graphqlMutation = await apolloClient.mutate(gql`
+        mutation Login($email: String!, $password: String!) {
+            login(email: $email, password: $password) {
+                token
+            }
+        }
+    `)
+    if (graphqlMutation.errors.length) {
+        throw graphqlMutation.errors[0]
+    } 
+    
+    const { token } = graphqlMutation.data
     cookie.set('token', token, { expires })
-}
-
-export const logout = () => {
-    cookie.remove('token')
-    Router.push('/')
 }
 
 export const withAuthentication = WrappedComponent => {
@@ -23,12 +30,22 @@ export const withAuthentication = WrappedComponent => {
         const isServer = Boolean(ctx.req)
         if (isServer && !token) {
             ctx.res.writeHead(302, { Location: '/login' })
-        } else if (!token) {
-            Router.push('/login')
+        } else {
+            const expiredToken = token && 
+                decode(token, {complete: true,json:true}).iat < new Date
+            if(expiredToken) console.log('Token expired!')
+            if (!token || expiredToken) {
+                Router.push('/login')
+            }
         }
 
+        const wrappedComponentInitialProps = WrappedComponent.getInitialProps
+            ? await WrappedComponent.getInitialProps(ctx)
+            : {}
+
         return {
-            isAuthenticated: Boolean(token),
+            ...wrappedComponentInitialProps,
+            isAuthenticated: Boolean(token)
         }
     }
 

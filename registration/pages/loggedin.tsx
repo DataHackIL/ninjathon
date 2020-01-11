@@ -1,8 +1,8 @@
 import React from 'react'
 import { withAuthentication } from '../lib/auth'
 
-const DummyRoute = withAuthentication(() => {
+const LoggedIn = withAuthentication(() => {
     return <div>Logged in.</div>
 })
 
-export default DummyRoute
+export default LoggedIn

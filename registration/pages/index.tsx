@@ -1,12 +1,9 @@
-import { useMutation } from '@apollo/react-hooks'
-import { gql } from 'apollo-boost'
 import { useRouter } from 'next/router'
 import React from 'react'
 
 import { login } from '../lib/auth'
 
 const LoginRoute = () => {
-    const loginQuery = useLoginQuery()
     const router = useRouter()
 
     return (
@@ -14,7 +11,8 @@ const LoginRoute = () => {
             onSubmit={async e => {
                 e.preventDefault()
                 const formData = new FormData((e as any).target)
-                await loginQuery(formData)
+                const { email, password } = Object.fromEntries(formData)
+                await login({ email, password })
                 router.replace('/loggedin')
             }}
         >
@@ -25,24 +23,5 @@ const LoginRoute = () => {
     )
 }
 
-const useLoginQuery = () => {
-    const [loginQuery] = useMutation(gql`
-    mutation Login($email: String!, $password: String!) {
-      login(email: $email, password: $password) {
-        token
-      }
-    }
-  `)
-
-    return async (formData: FormData) => {
-        const {
-            data: {
-                login: { token },
-            },
-        } = await loginQuery({ variables: Object.fromEntries(formData) })
-
-        login({ token })
-    }
-}
 
 export default LoginRoute

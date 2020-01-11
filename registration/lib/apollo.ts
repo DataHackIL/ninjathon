@@ -1,6 +1,6 @@
-import { ApolloClient } from 'apollo-boost';
 import fetch from 'node-fetch'
+import { ApolloClient } from 'apollo-boost'
 
 export const apolloClient = new ApolloClient({
-    fetch: fetch as any,
-})
+    fetch
+} as any)
