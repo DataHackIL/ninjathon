@@ -1,8 +1,7 @@
 import React from 'react'
+import { withAuthentication } from '../lib/auth'
 
-import { nextConnect } from '../lib/decorators'
-
-const DummyRoute = nextConnect({})(() => {
+const DummyRoute = withAuthentication(() => {
     return <div>Logged in.</div>
 })
 
