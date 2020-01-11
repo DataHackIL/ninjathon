@@ -3,8 +3,21 @@
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 DATA_DIRECTORY=${SCRIPTS_DIR}/../backups/data
 
-function postgres() {
-  docker exec -i "$(docker-compose ps -q postgres)" "$@"
+function @pg_dump() {
+  if [[ -f /.dockerenv ]] || grep -Eq '(lxc|docker)' /proc/1/cgroup; then
+    pg_dump -h postgres -U postgres "$@"
+  else
+    docker exec -i "$(docker-compose ps -q postgres)" pg_dump -U postgres "$@"
+  fi
+}
+
+# shellcheck disable=SC2120
+function @psql() {
+  if [[ -f /.dockerenv ]] || grep -Eq '(lxc|docker)' /proc/1/cgroup; then
+    psql -h postgres -U postgres "$@"
+  else
+    docker exec -i "$(docker-compose ps -q postgres)" psql -U postgres "$@"
+  fi
 }
 
 function create() {
@@ -12,7 +25,7 @@ function create() {
   backup_name=dump_$(date +%d-%m-%Y"_"%H_%M_%S).sql
 
   mkdir -p "$DATA_DIRECTORY"
-  postgres pg_dump -U postgres -n public --data-only >"$DATA_DIRECTORY/$backup_name"
+  @pg_dump -n public --data-only >"$DATA_DIRECTORY/$backup_name"
   echo "Dumped backup to: $backup_name"
 }
 
@@ -32,7 +45,7 @@ function restore() {
         exit 1
       fi
     fi
-    postgres psql -U postgres <"$backup_path"
+    @psql <"$backup_path"
     echo "Restored backup: $(realpath --relative-to="$(pwd)" "$backup_path")"
   fi
 }
