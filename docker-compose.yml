@@ -29,7 +29,7 @@ services:
     depends_on:
       - hasura
     build:
-      context: ./registration
+      context: ./providers/registration
       dockerfile: Dockerfile
 
   mailer-service:
