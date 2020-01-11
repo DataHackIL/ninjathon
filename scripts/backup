@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+DATA_DIRECTORY=${SCRIPTS_DIR}/../backups/data
+
+function postgres() {
+  docker exec -i "$(docker-compose ps -q postgres)" "$@"
+}
+
+function create() {
+  local backup_name
+  backup_name=dump_$(date +%d-%m-%Y"_"%H_%M_%S).sql
+
+  mkdir -p "$DATA_DIRECTORY"
+  postgres pg_dump -U postgres -n public --data-only >"$DATA_DIRECTORY/$backup_name"
+  echo "Dumped backup to: $backup_name"
+}
+
+function restore() {
+  local backup_path
+  backup_path="$*"
+
+  if [ -z "$backup_path" ]; then
+    echo $"Usage: ${0##*/} restore (backup_path or latest)"
+  else
+    if [ "$backup_path" == "latest" ]; then
+      # shellcheck disable=SC2012
+      backup_path="$DATA_DIRECTORY/$(\ls -t1 "$DATA_DIRECTORY" | head -n1)"
+
+      if [[ -d $backup_path ]]; then
+        echo "No backups available in the data directory"
+        exit 1
+      fi
+    fi
+    postgres psql -U postgres <"$backup_path"
+    echo "Restored backup: $(realpath --relative-to="$(pwd)" "$backup_path")"
+  fi
+}
+
+case "$1" in
+create)
+  create
+  ;;
+
+restore)
+  restore "$2"
+  ;;
+*)
+  echo $"Usage: ${0##*/} {create | restore (backup_path or latest)}"
+  exit 1
+  ;;
+esac
