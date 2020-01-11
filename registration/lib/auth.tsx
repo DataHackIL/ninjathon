@@ -6,17 +6,21 @@ import { apolloClient } from './apollo'
 import { decode } from 'jsonwebtoken'
 
 export const login = async ({ email, password }, expires = 1) => {
-    const graphqlMutation = await apolloClient.mutate(gql`
-        mutation Login($email: String!, $password: String!) {
-            login(email: $email, password: $password) {
-                token
+    const graphqlMutation = await apolloClient.mutate({
+        mutation: gql`
+            mutation Login($email: String!, $password: String!) {
+                login(email: $email, password: $password) {
+                    token
+                }
             }
-        }
-    `)
+        `,
+        variables: { email, password }
+    })
+    debugger
     if (graphqlMutation.errors.length) {
         throw graphqlMutation.errors[0]
-    } 
-    
+    }
+
     const { token } = graphqlMutation.data
     cookie.set('token', token, { expires })
 }

@@ -36,16 +36,16 @@ const validateRequest = (req, res, next) => {
 app.use( '/graphql',
     bodyParser.json(),
     validateRequest,
-    graphqlExpress({
+    graphqlExpress((req, res) => ({
         schema,
-        context: ({ req, res }) => {
+        context: () => {
             const jwt = req.headers.authorization || '';
 
             const token = getToken(jwt);
 
             return { token };
         },
-    })
+    }))
 )
 
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }))
