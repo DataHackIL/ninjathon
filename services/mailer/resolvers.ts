@@ -1,4 +1,4 @@
-import logger from '../utilities/logger'
+import logger from './utilities/logger'
 
 import { createTransport } from 'nodemailer'
 

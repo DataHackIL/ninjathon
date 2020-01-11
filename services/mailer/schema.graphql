@@ -1,0 +1,18 @@
+input MailInput {
+    recipient: String!
+    subject: String!
+    message: String!
+}
+
+type MailPayload {
+    response: String
+    errors: [String]
+}
+
+type Query {
+    _mailerDummy: String
+}
+
+type Mutation {
+    sendMail(input: MailInput!): MailPayload!
+}
