@@ -8,8 +8,9 @@ import { merge } from 'lodash'
 
 import logger from './utilities/logger'
 import emailResolvers from './handlers/email'
-import authenticationResolvers from './handlers/authentication'
+import authenticationResolvers, { userPayloadFromRequest } from './handlers/authentication'
 
+const cookieParser = require('cookie-parser')
 const typeDefs = readFileSync(join(__dirname, './schema.graphql')).toString()
 const resolvers = merge(
     emailResolvers,
@@ -33,6 +34,34 @@ const validateRequest = (req, res, next) => {
     next()
 }
 
-app.use('/graphql', bodyParser.json(), validateRequest, graphqlExpress({ schema }))
+app.use(
+    '/graphql',
+    cookieParser(),
+    bodyParser.json(),
+    validateRequest,
+    graphqlExpress((req, res) => ({
+        schema,
+        context: ({ req, res }) => ({
+            req,
+            res,
+            userPayload: userPayloadFromRequest({ req, res }),
+        }),
+    }))
+)
+
+// https://www.apollographql.com/docs/apollo-server/api/apollo-server/
+// we also use (bodyParser) and cookieParser, so we add those
+export interface ApolloServerExpressIntegrationContext {
+    req: Express.Request & { cookies: { [key: string]: string } }
+    res: Express.Response & {
+        cookie<DictKey extends string>(key: DictKey, value: string, opts: any): any
+    }
+}
+
+export type ResolverContext = ApolloServerExpressIntegrationContext & {
+    userPayload: ReturnType<typeof userPayloadFromRequest>
+}
+
+// TODO right now, graphiql can't be used to access routes protected with resolverwithauth
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }))
 app.listen(3000, () => logger.info('Server running, try going to /graphiql', { port: 3000 }))
