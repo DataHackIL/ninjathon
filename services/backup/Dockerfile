@@ -1,7 +1,7 @@
 FROM ubuntu:bionic
 
 RUN apt-get update
-RUN apt-get -y install cron wget gnupg
+RUN apt-get -y install cron wget gnupg awscli
 
 # Install posgres client
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
