@@ -6,6 +6,20 @@ x-container: &base-container
   restart: always
 
 services:
+  backup-service:
+    <<: *base-container
+    container_name: backup-service
+    depends_on:
+      - postgres
+    build:
+      context: ./services/backup
+      dockerfile: Dockerfile
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+
   registration-provider:
     <<: *base-container
     container_name: registration-provider
