@@ -1,14 +1,3 @@
-input MailInput {
-    recipient: String!
-    subject: String!
-    message: String!
-}
-
-type MailPayload {
-    response: String
-    errors: [String]
-}
-
 type AuthenticationPayload {
     role: String
     token: String
@@ -16,11 +5,10 @@ type AuthenticationPayload {
 }
 
 type Query {
-    _dummy: String
+    _authenticationDummy: String
 }
 
 type Mutation {
-    sendMail(input: MailInput!): MailPayload!
     register(email: String!, password: String!): AuthenticationPayload!
     login(email: String!, password: String!): AuthenticationPayload!
 }

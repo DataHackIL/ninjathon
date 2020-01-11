@@ -4,28 +4,21 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express'
 import { makeExecutableSchema } from 'graphql-tools'
-import { merge } from 'lodash'
 
 import logger from './utilities/logger'
-import emailResolvers from './handlers/email'
-import authenticationResolvers from './handlers/authentication'
+import resolvers from './resolvers'
 
 const typeDefs = readFileSync(join(__dirname, './schema.graphql')).toString()
-const resolvers = merge(
-    emailResolvers,
-    authenticationResolvers
-)
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
 const app = express()
 
 // TODO: should be replaced by https://github.com/hasura/graphql-engine/issues/2461
 const validateRequest = (req, res, next) => {
-    const isInvalidated = !req.headers['x-hasura-role'] || req.headers['x-hasura-role'] === 'anonymous'
-    const isIntrospection = req.body['operationName'] === 'IntrospectionQuery'
-    const isInternal = ['sendMail'].some(service => req.body['query'].includes(service))
+    const isInvalidated: boolean = !req.headers['x-hasura-role'] || req.headers['x-hasura-role'] === 'anonymous'
+    const isIntrospection: boolean = req.body['operationName'] === 'IntrospectionQuery'
 
-    if (isInvalidated && isInternal && !isIntrospection) {
+    if (isInvalidated && !isIntrospection) {
         res.status(403).json({
             errors: ['Unauthorized access']
         })
