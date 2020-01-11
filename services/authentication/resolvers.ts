@@ -2,7 +2,9 @@ import logger from './utilities/logger'
 import { Pool } from 'pg'
 import { get, isEmpty } from 'lodash'
 import { hash, compare } from 'bcrypt'
-import { sign } from 'jsonwebtoken'
+import { sign, verify } from 'jsonwebtoken'
+
+export const jwtAlgorithm = 'HS512'
 
 const pool = new Pool({
     host: 'postgres',
@@ -32,18 +34,26 @@ const insertUser = async (email: String, hashedPassword: String): Promise<User> 
     }), 'rows.0', null)
 }
 
-const generateJWT = (user: User): String => sign({
-    'name': user.email,
-    'iat': new Date().getTime() / 1000,
+export const generateJWT = (user: User) => sign({
+    name: user.email,
+    iat: new Date().getTime() / 1000,
     'https://hasura.io/jwt/claims': {
         'x-hasura-allowed-roles': [user.role],
         'x-hasura-default-role': user.role,
-        'x-hasura-user-id': user.id.toString()
-    }
-}, process.env.JWT_SECRET, {
-    algorithm: 'HS512'
-})
+        'x-hasura-user-id': user.id.toString(),
+    },
+}, process.env.JWT_SECRET, { algorithm: jwtAlgorithm })
 
+export const getToken = (token: string) => {
+    try {
+        return verify(token.split(' ')[1], process.env.JWT_SECRET, {
+            algorithms: [jwtAlgorithm],
+        })
+    } catch (e) {
+        // TODO log unauthenticated access
+        return undefined
+    }
+}
 
 export default {
     Mutation: {
@@ -65,6 +75,7 @@ export default {
         },
         login: async (parent, { email, password }) => {
             const user = await getUser(email)
+
             if (isEmpty(user)) {
                 return {
                     errors: ['Email is not registered']
