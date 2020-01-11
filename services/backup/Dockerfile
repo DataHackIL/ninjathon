@@ -1,4 +1,21 @@
-FROM fedora:31
+FROM ubuntu:bionic
 
-RUN dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/F-31-x86_64/pgdg-fedora-repo-latest.noarch.rpm
-RUN dnf install -y postgresql12
+RUN apt-get update
+RUN apt-get -y install cron wget gnupg
+
+# Install posgres client
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list
+RUN apt-get update
+RUN apt-get -y install postgresql-client-12
+
+# Create log file
+RUN touch /var/log/cron.log
+
+# Add backup job to crontab
+COPY ./backup-cronjob .
+RUN chmod +x /backup-cronjob
+RUN (crontab -l 2>/dev/null; echo "0 * * * * /backup-cronjob >> /var/log/cron.log 2>&1") | crontab -
+
+# Load environment variables and run cron
+CMD env >> /etc/environment && cron && tail -f /var/log/cron.log

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Creates a local backup
+/scripts/backup create
+
+# TODO Add remote S3 backup sync here
