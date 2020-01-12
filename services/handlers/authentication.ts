@@ -4,8 +4,7 @@ import { get, isEmpty } from 'lodash'
 import { hash, compare } from 'bcrypt'
 import { sign, verify } from 'jsonwebtoken'
 
-const secret = process.env.JWT_SECRET
-const algorithm = 'HS512'
+export const jwtAlgorithm = 'HS512'
 
 const pool = new Pool({
     host: 'postgres',
@@ -14,7 +13,7 @@ const pool = new Pool({
     port: 5432
 })
 
-export interface User {
+interface User {
     id: Number
     email: String
     password: String
@@ -35,7 +34,7 @@ const insertUser = async (email: String, hashedPassword: String): Promise<User> 
     }), 'rows.0', null)
 }
 
-export const generateJWT = (user: User, expiresIn = '7d') => sign({
+export const generateJWT = (user: User) => sign({
     name: user.email,
     iat: new Date().getTime() / 1000,
     'https://hasura.io/jwt/claims': {
@@ -43,12 +42,12 @@ export const generateJWT = (user: User, expiresIn = '7d') => sign({
         'x-hasura-default-role': user.role,
         'x-hasura-user-id': user.id.toString(),
     },
-}, secret, { algorithm, expiresIn })
+}, process.env.JWT_SECRET, { algorithm: jwtAlgorithm })
 
 export const getToken = (token: string) => {
     try {
-        return verify(token.split(' ')[1], secret, {
-            algorithms: [algorithm],
+        return verify(token.split(' ')[1], process.env.JWT_SECRET, {
+            algorithms: [jwtAlgorithm],
         })
     } catch (e) {
         // TODO log unauthenticated access

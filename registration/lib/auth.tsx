@@ -16,8 +16,8 @@ export const login = async ({ email, password }, expires = 1) => {
         `,
         variables: { email, password }
     })
-    debugger
-    if (graphqlMutation.errors.length) {
+
+    if (graphqlMutation.errors && graphqlMutation.errors.length) {
         throw graphqlMutation.errors[0]
     }
 
@@ -30,7 +30,7 @@ export const withAuthentication = WrappedComponent => {
 
     Wrapper.getInitialProps = async ctx => {
         const { token } = nextCookie(ctx)
-
+        debugger
         const isServer = Boolean(ctx.req)
         if (isServer && !token) {
             ctx.res.writeHead(302, { Location: '/login' })
@@ -54,8 +54,4 @@ export const withAuthentication = WrappedComponent => {
     }
 
     return Wrapper
-}
-
-export type AuthProps = {
-    isAuthenticated: boolean
 }

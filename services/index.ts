@@ -8,7 +8,8 @@ import { merge } from 'lodash'
 
 import logger from './utilities/logger'
 import emailResolvers from './handlers/email'
-import authenticationResolvers, { getToken } from './handlers/authentication'
+import authenticationResolvers, { getToken, jwtAlgorithm } from './handlers/authentication'
+import { verify } from 'jsonwebtoken'
 
 const typeDefs = readFileSync(join(__dirname, './schema.graphql')).toString()
 const resolvers = merge(
@@ -39,9 +40,11 @@ app.use( '/graphql',
     graphqlExpress((req, res) => ({
         schema,
         context: () => {
-            const jwt = req.headers.authorization || '';
+            const [, jwt] = req.headers.authorization.split(' ') || [,''];
 
-            const token = getToken(jwt);
+            const token = verify(jwt, process.env.JWT_SECRET, {
+                algorithms: [jwtAlgorithm],
+            });
 
             return { token };
         },
