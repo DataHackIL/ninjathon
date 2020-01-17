@@ -1,4 +1,4 @@
-import logger from '../utilities/logger'
+import logger from './utilities/logger'
 import { Pool } from 'pg'
 import { get, isEmpty } from 'lodash'
 import { hash, compare } from 'bcrypt'

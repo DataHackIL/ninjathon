@@ -17,17 +17,18 @@ const usesCorrectTitleFormat = !!title.match(titleFormat)
 allSystemsCheck &= usesCorrectTitleFormat
 if (!usesCorrectTitleFormat) warn(`Title format should follow 'Subject: What I changed.'`)
 
-// Should have at least 2 reviewers
+// Should have at least one reviewer
 const reviews = danger.github.reviews
 const approvingReviewers = new Set(reviews.filter(r => r.state = 'APPROVED').map(r => r.user.id))
-const hasTwoApprovingReviews = approvingReviewers.size > 1
-allSystemsCheck &= hasTwoApprovingReviews
-if (!hasTwoApprovingReviews) warn('You need at least 2 reviews (including production reviewer)')
+const atLeastOneApprovingReview = approvingReviewers.size > 0
+allSystemsCheck &= atLeastOneApprovingReview
+if (!atLeastOneApprovingReview) warn('You need at least one review (including production reviewer)')
 
 // Should be reviewed by production reviewer
 const productionReviewers = ['shakedlokits']
+const isProductionReviewer = productionReviewers.includes(danger.github.pr.user.login)
 const approvedByProductionReviewer = reviews.filter(r => productionReviewers.includes(r.user.login)).length > 0
-allSystemsCheck &= approvedByProductionReviewer
-if (!approvedByProductionReviewer) fail('Merging requires a review by a production reviewer')
+allSystemsCheck &= approvedByProductionReviewer || isProductionReviewer
+if (!approvedByProductionReviewer && !isProductionReviewer) fail('Merging requires a review by a production reviewer')
 
 if (allSystemsCheck) success('All systems check! ready to merge (:')

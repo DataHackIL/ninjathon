@@ -8,6 +8,14 @@
         forward_client_headers: true
         headers: []
         timeout_seconds: 60
+        url: http://authentication-service:3000/graphql
+        url_from_env: null
+      name: authentication-service
+    - comment: null
+      definition:
+        forward_client_headers: true
+        headers: []
+        timeout_seconds: 60
         url: http://mailer-service:3000/graphql
         url_from_env: null
       name: mailer-service

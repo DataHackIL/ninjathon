@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Creates a local backup
+/scripts/backup create
+
+# Syncs the backups to the S3 bucket
+if aws s3api get-bucket-acl --bucket "$AWS_BUCKET_NAME" >/dev/null 2>&1; then
+  aws s3 sync /backups/data s3://"$AWS_BUCKET_NAME"
+else
+  echo 'AWS bucket or connection is not configured'
+fi
+

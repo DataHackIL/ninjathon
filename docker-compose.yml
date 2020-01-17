@@ -1,31 +1,57 @@
 version: '3.5'
 
-x-base: &base-service
+x-container: &base-container
   stdin_open: true
   tty: true
   restart: always
 
 services:
-  registration:
-    <<: *base-service
-    container_name: registration
+  backup-service:
+    <<: *base-container
+    container_name: backup-service
+    depends_on:
+      - postgres
+    build:
+      context: ./services/backup
+      dockerfile: Dockerfile
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      AWS_BUCKET_NAME: "${AWS_BUCKET_NAME}"
+
+  registration-provider:
+    <<: *base-container
+    container_name: registration-provider
     depends_on:
       - hasura
     build:
-      context: ./registration
+      context: ./providers/registration
       dockerfile: Dockerfile
 
-  services:
-    <<: *base-service
-    container_name: services
+  mailer-service:
+    <<: *base-container
+    container_name: mailer-service
     build:
-      context: ./services
+      context: ./services/mailer
+      dockerfile: Dockerfile
+    environment:
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET}"
+
+  authentication-service:
+    <<: *base-container
+    container_name: authentication-service
+    build:
+      context: ./services/authentication
       dockerfile: Dockerfile
     environment:
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET}"
 
   caddy:
-    <<: *base-service
+    <<: *base-container
     container_name: caddy
     image: abiosoft/caddy
     environment:
@@ -37,7 +63,7 @@ services:
       - ./certs:/root/.caddy
 
   postgres:
-    <<: *base-service
+    <<: *base-container
     container_name: postgres
     image: postgres
     environment:
@@ -48,14 +74,15 @@ services:
       - postgres:/data/postgres
 
   hasura:
-    <<: *base-service
+    <<: *base-container
     container_name: hasura
     image: hasura/graphql-engine:latest.cli-migrations
     volumes:
       - ./backups:/hasura-migrations
     depends_on:
       - postgres
-      - services
+      - mailer-service
+      - authentication-service
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
@@ -65,7 +92,7 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
 
   pgadmin:
-    <<: *base-service
+    <<: *base-container
     container_name: pgadmin
     image: dpage/pgadmin4
     environment:
