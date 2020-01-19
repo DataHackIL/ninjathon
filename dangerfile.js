@@ -1,4 +1,4 @@
-import {fail, warn, success, danger} from "danger"
+import {fail, warn, message, danger} from "danger"
 
 // Global variables and constants
 let allSystemsCheck = true
@@ -31,4 +31,4 @@ const approvedByProductionReviewer = reviews.filter(r => productionReviewers.inc
 allSystemsCheck &= approvedByProductionReviewer || isProductionReviewer
 if (!approvedByProductionReviewer && !isProductionReviewer) fail('Merging requires a review by a production reviewer')
 
-if (allSystemsCheck) success('All systems check! ready to merge (:')
+if (allSystemsCheck) message('All systems check! ready to merge (:')
