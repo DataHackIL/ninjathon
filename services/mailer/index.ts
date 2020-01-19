@@ -17,8 +17,9 @@ const app = express()
 const validateRequest = (req, res, next) => {
     const isInvalidated: boolean = !req.headers['x-hasura-role'] || req.headers['x-hasura-role'] === 'anonymous'
     const isIntrospection: boolean = req.body['operationName'] === 'IntrospectionQuery'
+    const isInternal: boolean = ['sendMail'].some(service => req.body['query'].includes(service))
 
-    if (isInvalidated && !isIntrospection) {
+    if (isInvalidated && isInternal && !isIntrospection) {
         res.status(403).json({
             errors: ['Unauthorized access']
         })
