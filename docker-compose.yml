@@ -61,15 +61,6 @@ services:
     environment:
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET}"
 
-  # teams-service:
-  #   <<: *base-container
-  #   container_name: teams-service
-  #   build:
-  #     context: ./services/teams
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     JWT_SECRET: "${JWT_SECRET:?JWT_SECRET}"
-
   caddy:
     <<: *base-container
     container_name: caddy
