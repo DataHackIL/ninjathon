@@ -3,7 +3,7 @@ import dynamic from "next/dynamic"
 
 export const HelloInfraPage = (props) => {
     return (
-        <div>Hello Infra</div>
+        <div>Hello Infra /team</div>
     )
 }
 
