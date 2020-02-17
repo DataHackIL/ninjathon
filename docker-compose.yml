@@ -32,6 +32,17 @@ services:
       context: ./providers/registration
       dockerfile: Dockerfile
 
+  teams-provider:
+    <<: *base-container
+    container_name: teams-provider
+    depends_on:
+      - hasura
+    build:
+      context: ./providers/teams
+      dockerfile: Dockerfile
+    volumes:
+      - ./providers/teams:/usr/src/app
+
   mailer-service:
     <<: *base-container
     container_name: mailer-service
