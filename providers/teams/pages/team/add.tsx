@@ -5,6 +5,8 @@ import { getUrl } from '~/lib/urls'
 import { gql } from 'apollo-boost'
 import { useRouter } from 'next/router'
 import { withAuthentication } from '~/lib/auth'
+import { insertTeam, insertTeamMembers } from '~/lib/api'
+import { Team } from '~/lib/common'
 
 /**
  * Note: we're sending the variables to grahpql by the input's name.
@@ -15,29 +17,14 @@ export const AddTeamPage = withAuthentication(props => {
     async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
         event.preventDefault()
         const formData = new FormData(document.forms[0])
-        const team = {}
-        for (const [key, value] of formData.entries() as any) { // TS is wrong about types here
-            team[key] = value
+        const teamData = {
+            name: formData.get('name').toString(),
+            description: formData.get('description').toString(),
         }
-        const graphqlMutation = await apolloClient.mutate({
-            mutation: gql`
-                mutation MyMutation($team: [teams_insert_input!]!) {
-                    insert_teams(objects: $team) {
-                        returning {
-                            id
-                        }
-                    }
-                }
-            `,
-            variables: { team },
-        })
-        const res = graphqlMutation.data.insert_teams
-        if (res.errors) {
-            alert(res.errors[0])
-            throw res.errors[0]
-        }
-        const id = res.returning[0].id
-        router.replace(getUrl.profile(id))
+        const { id: teamId } = await insertTeam(teamData)
+        await insertTeamMembers(teamId)
+
+        // router.replace(getUrl.profile(teamId))
     }
 
     return (
