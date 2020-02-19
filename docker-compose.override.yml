@@ -5,3 +5,22 @@ services:
     command: ["npm", "run", "dev"]
     volumes:
       - ./providers/teams:/app
+      - /app/node_modules/
+
+  registration-provider:
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./providers/registration:/app
+      - /app/node_modules/
+
+  authentication-service:
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./services/authentication:/app
+      - /app/node_modules/
+
+  mailer-service:
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./services/authentication:/app
+      - /app/node_modules/
