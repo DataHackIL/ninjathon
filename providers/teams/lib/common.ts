@@ -2,6 +2,7 @@ export interface Team {
   id: number
   name: String
   description: String
+  pointOfContactUserId: String
 }
 export interface Team_Challenges {
     id: number
