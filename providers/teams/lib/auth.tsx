@@ -1,10 +1,13 @@
 import cookie from 'js-cookie'
 import nextCookie from 'next-cookies'
 import Router from 'next/router'
-import { gql } from 'apollo-boost'
-import { apolloClient } from './apollo'
 import { decode } from 'jsonwebtoken'
 
+export const getUserId = () =>{
+    const token = decode(cookie.get('token'), { complete: true, json: true })
+    const userId = token.payload['https://hasura.io/jwt/claims']['x-hasura-user-id']
+    return userId
+}
 export const withAuthentication = WrappedComponent => {
     const Wrapper = props => <WrappedComponent {...props} />
 
