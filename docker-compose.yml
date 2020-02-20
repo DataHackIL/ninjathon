@@ -40,8 +40,6 @@ services:
     build:
       context: ./providers/teams
       dockerfile: Dockerfile
-    volumes:
-      - ./providers/teams:/usr/src/app
 
   mailer-service:
     <<: *base-container

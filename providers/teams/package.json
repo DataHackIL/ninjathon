@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "next build",
-    "start": "node server.js"
+    "dev": "next",
+    "start": "next build && next start"
   },
-  "homepage": "team",
   "author": "",
   "license": "ISC",
   "dependencies": {
