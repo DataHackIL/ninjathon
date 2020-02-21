@@ -25,5 +25,9 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
-  ]
+  ],
+  "baseUrl": ".",
+  "paths": {
+    "@shared/*": ["../shared/*"]
+  }
 }
