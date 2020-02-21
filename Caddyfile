@@ -1,7 +1,7 @@
 0.0.0.0
 proxy / registration-provider:3000
-proxy /teams teams-provider:3000 {
-    without /teams
+proxy /team teams-provider:3000 {
+    without /team
 }
 proxy /graphql hasura:8080/v1
 proxy /hasura/ hasura:8080 {
