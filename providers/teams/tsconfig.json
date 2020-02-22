@@ -25,5 +25,9 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx", "pages/team/[id]/index.js"
-  ]
+  ],
+  "baseUrl": ".",
+  "paths": {
+    "@shared/*": ["../shared/*"]
+  }
 }
