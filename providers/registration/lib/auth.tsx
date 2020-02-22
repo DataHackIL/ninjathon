@@ -16,12 +16,12 @@ export const login = async ({ email, password }, expires = 1) => {
                 }
             }
         `,
-        variables: { email, password }
+        variables: { email, password },
     })
     const res = graphqlMutation.data.login
     if (res.errors) {
         alert(res.errors[0])
-        throw res.errors[0];
+        throw res.errors[0]
     }
 
     const { token } = res
@@ -39,9 +39,8 @@ export const withAuthentication = WrappedComponent => {
         if (isServer && !token) {
             ctx.res.writeHead(302, { Location: '/login' })
         } else {
-            const expiredToken = token && 
-                decode(token, {complete: true,json:true}).iat < new Date
-            if(expiredToken) console.log('Token expired!')
+            const expiredToken = token && decode(token, { complete: true, json: true }).iat < new Date()
+            if (expiredToken) console.log('Token expired!')
             if (!token || expiredToken) {
                 Router.push('/login')
             }
@@ -53,7 +52,7 @@ export const withAuthentication = WrappedComponent => {
 
         return {
             ...wrappedComponentInitialProps,
-            isAuthenticated: Boolean(token)
+            isAuthenticated: Boolean(token),
         }
     }
 

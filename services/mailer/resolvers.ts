@@ -8,16 +8,17 @@ const transporter = createTransport({
     secure: true,
     auth: {
         user: 'contact@datahack.org.il',
-        pass: '&KyTIS3EH&TJjOL3*WtIVPxl'
-    }
+        pass: '&KyTIS3EH&TJjOL3*WtIVPxl',
+    },
 })
 
-const sendMail = (recipient, subject, message) => transporter.sendMail({
-    from: '"DataHack " <contact@datahack.org.il>',
-    to: recipient,
-    subject: subject,
-    html: message
-})
+const sendMail = (recipient, subject, message) =>
+    transporter.sendMail({
+        from: '"DataHack " <contact@datahack.org.il>',
+        to: recipient,
+        subject: subject,
+        html: message,
+    })
 
 export default {
     Mutation: {
@@ -30,6 +31,6 @@ export default {
                 logger.error('Failed to send email ', error)
                 return { errors: [error] }
             }
-        }
-    }
+        },
+    },
 }

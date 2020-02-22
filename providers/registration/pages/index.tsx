@@ -23,5 +23,4 @@ const LoginRoute = () => {
     )
 }
 
-
 export default LoginRoute

@@ -1,8 +1,12 @@
 import React from 'react'
 import { withAuthentication } from '../lib/auth'
 
-const LoggedIn = (props) => {
-return <div>{props.message}: {props.isAuthenticated ? 'true' : 'false'}.</div>
+const LoggedIn = props => {
+    return (
+        <div>
+            {props.message}: {props.isAuthenticated ? 'true' : 'false'}.
+        </div>
+    )
 }
 
 LoggedIn.getInitialProps = async ctx => {
