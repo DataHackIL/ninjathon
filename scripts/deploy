@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIRECTORY=${SCRIPTS_DIR}/..
+
+compose_files_parameters="-f ${ROOT_DIRECTORY}/docker-compose.yml -f ${ROOT_DIRECTORY}/docker-compose.prod.yml"
+
+docker-compose $compose_files_parameters down --remove-orphans -v
+docker-compose $compose_files_parameters up --build -d

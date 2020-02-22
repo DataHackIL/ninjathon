@@ -22,5 +22,5 @@ services:
   mailer-service:
     command: ["npm", "run", "dev"]
     volumes:
-      - ./services/authentication:/app
+      - ./services/mailer:/app
       - /app/node_modules/
