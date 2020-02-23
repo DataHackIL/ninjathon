@@ -18,6 +18,15 @@ The all-in-one DataHack management platform, from registration to communications
 3. Wait for backups to be pulled from AWS automatically
 4. Populate the database by running `./scripts/backup restore lastest`
 
+## Testing
+
+To test the project we use [Cypress](https://www.cypress.io/) running through docker and X11 rendering server.
+
+- In order to run the tests through CLI run `./scripts test cli`
+- If you want to run the tests interactively you should run `./scripts test gui`
+
+> *Note:* On macOS and Windows, and X11 server will be required, [XQuartz](https://www.xquartz.org/) is the standard X11 server for macOS and you will need to tick the [Allow connections from network clients](https://blogs.oracle.com/oraclewebcentersuite/running-gui-applications-on-native-docker-containers-for-mac) and restart Quartz.
+
 ## Linting
 
 In order to lint the project for code quality issues you could either run `./scripts/lint status` to view files that are conflicting with the code style or run `./scripts/lint fix` to resolve the conflicts automatically.
