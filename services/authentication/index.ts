@@ -23,27 +23,28 @@ const validateRequest = (req, res, next) => {
 
     if (isInvalidated && isInternal && !isIntrospection) {
         res.status(403).json({
-            errors: ['Unauthorized access']
+            errors: ['Unauthorized access'],
         })
     }
     next()
 }
 
-app.use( '/graphql',
+app.use(
+    '/graphql',
     bodyParser.json(),
     validateRequest,
     graphqlExpress((req, res) => ({
         schema,
         context: () => {
-            if(!(req && req.headers.authorization)) return {}
+            if (!(req && req.headers.authorization)) return {}
 
-            const [, jwt] = req.headers.authorization.split(' ');
+            const [, jwt] = req.headers.authorization.split(' ')
 
             const token = verify(jwt, process.env.JWT_SECRET, {
                 algorithms: [jwtAlgorithm],
-            });
+            })
 
-            return { token };
+            return { token }
         },
     }))
 )

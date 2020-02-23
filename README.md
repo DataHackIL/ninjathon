@@ -27,6 +27,10 @@ To test the project we use [Cypress](https://www.cypress.io/) running through do
 
 > *Note:* On macOS and Windows, and X11 server will be required, [XQuartz](https://www.xquartz.org/) is the standard X11 server for macOS and you will need to tick the [Allow connections from network clients](https://blogs.oracle.com/oraclewebcentersuite/running-gui-applications-on-native-docker-containers-for-mac) and restart Quartz.
 
+## Linting
+
+In order to lint the project for code quality issues you could either run `./scripts/lint status` to view files that are conflicting with the code style or run `./scripts/lint fix` to resolve the conflicts automatically.
+
 ## Contributing
 
 Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.

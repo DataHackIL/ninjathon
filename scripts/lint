@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIRECTORY=${SCRIPTS_DIR}/..
+FILE_PATTERN='{services,providers}/**/*.{ts,tsx,js,jsx,css,scss,sass,md}'
+
+function prettier() {
+  docker run --rm -v "$ROOT_DIRECTORY:/work" tmknom/prettier --ignore-path .gitignore "$@" "$FILE_PATTERN"
+}
+
+case "$1" in
+status)
+  prettier -c
+  ;;
+
+fix)
+  prettier --write
+  ;;
+*)
+  echo $"Usage: ${0##*/} {status | fix}"
+  exit 1
+  ;;
+esac
