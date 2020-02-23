@@ -18,6 +18,10 @@ The all-in-one DataHack management platform, from registration to communications
 3. Wait for backups to be pulled from AWS automatically
 4. Populate the database by running `./scripts/backup restore lastest`
 
+## Linting
+
+In order to lint the project for code quality issues you could either run `./scripts/lint status` to view files that are conflicting with the code style or run `./scripts/lint fix` to resolve the conflicts automatically.
+
 ## Contributing
 
 Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
