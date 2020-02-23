@@ -1,0 +1,22 @@
+version: '3.5'
+
+services:
+  teams-provider:
+    command: ["npm", "run", "start"]
+    environment:
+      NODE_ENV: production
+
+  registration-provider:
+    command: ["npm", "run", "start"]
+    environment:
+      NODE_ENV: production
+
+  authentication-service:
+    command: ["npm", "run", "start"]
+    environment:
+      NODE_ENV: production
+
+  mailer-service:
+    command: ["npm", "run", "start"]
+    environment:
+      NODE_ENV: production

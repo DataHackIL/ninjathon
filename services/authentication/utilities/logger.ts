@@ -1,4 +1,4 @@
-import {createLogger, format, transports} from 'winston'
+import { createLogger, format, transports } from 'winston'
 import * as path from 'path'
 
 const logFormat = format.printf(info => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`)
@@ -12,10 +12,7 @@ export default createLogger({
     ),
     transports: [
         new transports.Console({
-            format: format.combine(
-                format.colorize(),
-                logFormat
-            )
+            format: format.combine(format.colorize(), logFormat),
         }),
         // new transports.File({
         //     filename: 'logs/combined.log',
@@ -24,5 +21,5 @@ export default createLogger({
         //     )
         // })
     ],
-    exitOnError: false
+    exitOnError: false,
 })

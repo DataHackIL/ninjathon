@@ -21,7 +21,7 @@ const validateRequest = (req, res, next) => {
 
     if (isInvalidated && isInternal && !isIntrospection) {
         res.status(403).json({
-            errors: ['Unauthorized access']
+            errors: ['Unauthorized access'],
         })
     }
     next()

@@ -10,7 +10,7 @@ const pool = new Pool({
     host: 'postgres',
     user: 'postgres',
     password: 'changeme',
-    port: 5432
+    port: 5432,
 })
 
 interface User {
@@ -21,28 +21,41 @@ interface User {
 }
 
 const getUser = async (email: String): Promise<User> => {
-    return get(await pool.query({
-        text: 'select * from users as "user" where "user".email = $1',
-        values: [email]
-    }), 'rows.0', null)
+    return get(
+        await pool.query({
+            text: 'select * from users as "user" where "user".email = $1',
+            values: [email],
+        }),
+        'rows.0',
+        null
+    )
 }
 
 const insertUser = async (email: String, hashedPassword: String): Promise<User> => {
-    return get(await pool.query({
-        text: 'insert into users (email, password) values ($1, $2) returning id, role, email, password',
-        values: [email, hashedPassword]
-    }), 'rows.0', null)
+    return get(
+        await pool.query({
+            text: 'insert into users (email, password) values ($1, $2) returning id, role, email, password',
+            values: [email, hashedPassword],
+        }),
+        'rows.0',
+        null
+    )
 }
 
-export const generateJWT = (user: User) => sign({
-    name: user.email,
-    iat: new Date().getTime() / 1000,
-    'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': [user.role],
-        'x-hasura-default-role': user.role,
-        'x-hasura-user-id': user.id.toString(),
-    },
-}, process.env.JWT_SECRET, { algorithm: jwtAlgorithm })
+export const generateJWT = (user: User) =>
+    sign(
+        {
+            name: user.email,
+            iat: new Date().getTime() / 1000,
+            'https://hasura.io/jwt/claims': {
+                'x-hasura-allowed-roles': [user.role],
+                'x-hasura-default-role': user.role,
+                'x-hasura-user-id': user.id.toString(),
+            },
+        },
+        process.env.JWT_SECRET,
+        { algorithm: jwtAlgorithm }
+    )
 
 export const getToken = (token: string) => {
     try {
@@ -60,7 +73,7 @@ export default {
         register: async (parent, { email, password }) => {
             if (!isEmpty(await getUser(email))) {
                 return {
-                    errors: ['Email is already registered']
+                    errors: ['Email is already registered'],
                 }
             } else {
                 const hashedPassword = await hash(password, 10)
@@ -69,7 +82,7 @@ export default {
 
                 return {
                     token: generateJWT(user),
-                    ...user
+                    ...user,
                 }
             }
         },
@@ -78,20 +91,20 @@ export default {
 
             if (isEmpty(user)) {
                 return {
-                    errors: ['Email is not registered']
+                    errors: ['Email is not registered'],
                 }
             } else if (!(await compare(password, user.password))) {
                 return {
-                    errors: ['Incorrect password or email']
+                    errors: ['Incorrect password or email'],
                 }
             } else {
                 logger.info('User logged in', { email: email })
 
                 return {
                     token: generateJWT(user),
-                    ...user
+                    ...user,
                 }
             }
-        }
-    }
+        },
+    },
 }

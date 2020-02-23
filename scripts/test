@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIRECTORY=${SCRIPTS_DIR}/..
+
+function test_in_cli() {
+  docker run -it -v "$ROOT_DIRECTORY:/e2e" -e CYPRESS_VIDEO=false -w /e2e cypress/included:3.2.0
+}
+
+function test_in_gui() {
+  if hash xhost 2>/dev/null; then
+    xhost + 127.0.0.1
+    docker run --rm -it -v "$ROOT_DIRECTORY:/e2e" -w /e2e \
+      -e DISPLAY=host.docker.internal:0 -e CYPRESS_VIDEO=false \
+      --entrypoint cypress cypress/included:3.2.0 open --project .
+  else
+    echo "Oh no! You need to install Quartz X11 for GUI binding :("
+  fi
+}
+
+case "$1" in
+cli)
+  test_in_cli
+  ;;
+
+gui)
+  test_in_gui
+  ;;
+*)
+  echo $"Usage: ${0##*/} {cli | gui}"
+  exit 1
+  ;;
+esac

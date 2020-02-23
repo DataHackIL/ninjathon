@@ -26,6 +26,8 @@ services:
   registration-provider:
     <<: *base-container
     container_name: registration-provider
+    volumes:
+      - ./providers/shared:/shared
     depends_on:
       - hasura
     build:
@@ -35,13 +37,13 @@ services:
   teams-provider:
     <<: *base-container
     container_name: teams-provider
+    volumes:
+      - ./providers/shared:/shared
     depends_on:
       - hasura
     build:
       context: ./providers/teams
       dockerfile: Dockerfile
-    volumes:
-      - ./providers/teams:/usr/src/app
 
   mailer-service:
     <<: *base-container
