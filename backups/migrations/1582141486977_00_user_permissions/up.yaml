@@ -1,0 +1,199 @@
+- args:
+    allowlist: []
+    functions: []
+    query_collections: []
+    remote_schemas:
+    - comment: null
+      definition:
+        forward_client_headers: true
+        headers: []
+        timeout_seconds: 60
+        url: http://authentication-service:3000/graphql
+        url_from_env: null
+      name: auth
+    - comment: null
+      definition:
+        forward_client_headers: true
+        headers: []
+        timeout_seconds: 60
+        url: http://mailer-service:3000/graphql
+        url_from_env: null
+      name: mailer
+    tables:
+    - array_relationships: []
+      computed_fields: []
+      configuration:
+        custom_column_names: {}
+        custom_root_fields:
+          delete: null
+          insert: null
+          select: null
+          select_aggregate: null
+          select_by_pk: null
+          update: null
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      is_enum: false
+      object_relationships: []
+      select_permissions: []
+      table: challenges
+      update_permissions: []
+    - array_relationships: []
+      computed_fields: []
+      configuration:
+        custom_column_names: {}
+        custom_root_fields:
+          delete: null
+          insert: null
+          select: null
+          select_aggregate: null
+          select_by_pk: null
+          update: null
+      delete_permissions:
+      - comment: null
+        permission:
+          filter: {}
+        role: user
+      event_triggers: []
+      insert_permissions:
+      - comment: null
+        permission:
+          check: {}
+          columns:
+          - id
+          - teamId
+          - userId
+          set: {}
+        role: user
+      is_enum: false
+      object_relationships:
+      - comment: null
+        name: team
+        using:
+          foreign_key_constraint_on: teamId
+      - comment: null
+        name: user
+        using:
+          foreign_key_constraint_on: userId
+      select_permissions:
+      - comment: null
+        permission:
+          allow_aggregations: false
+          columns:
+          - id
+          - teamId
+          - userId
+          computed_fields: []
+          filter: {}
+        role: user
+      table: team_members
+      update_permissions:
+      - comment: null
+        permission:
+          columns:
+          - id
+          - teamId
+          - userId
+          filter: {}
+          set: {}
+        role: user
+    - array_relationships: []
+      computed_fields: []
+      configuration:
+        custom_column_names: {}
+        custom_root_fields:
+          delete: null
+          insert: null
+          select: null
+          select_aggregate: null
+          select_by_pk: null
+          update: null
+      delete_permissions:
+      - comment: null
+        permission:
+          filter: {}
+        role: user
+      event_triggers: []
+      insert_permissions:
+      - comment: null
+        permission:
+          check: {}
+          columns:
+          - id
+          - description
+          - name
+          set: {}
+        role: user
+      is_enum: false
+      object_relationships: []
+      select_permissions:
+      - comment: null
+        permission:
+          allow_aggregations: false
+          columns:
+          - id
+          - description
+          - name
+          computed_fields: []
+          filter: {}
+        role: user
+      table: teams
+      update_permissions:
+      - comment: null
+        permission:
+          columns:
+          - id
+          - description
+          - name
+          filter: {}
+          set: {}
+        role: user
+    - array_relationships: []
+      computed_fields: []
+      configuration:
+        custom_column_names: {}
+        custom_root_fields:
+          delete: null
+          insert: null
+          select: null
+          select_aggregate: null
+          select_by_pk: null
+          update: null
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      is_enum: false
+      object_relationships:
+      - comment: null
+        name: challenge
+        using:
+          foreign_key_constraint_on: challengeId
+      - comment: null
+        name: team
+        using:
+          foreign_key_constraint_on: teamId
+      select_permissions: []
+      table: teams_challenges
+      update_permissions: []
+    - array_relationships: []
+      computed_fields: []
+      configuration:
+        custom_column_names: {}
+        custom_root_fields:
+          delete: null
+          insert: null
+          select: null
+          select_aggregate: null
+          select_by_pk: null
+          update: null
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      is_enum: false
+      object_relationships: []
+      select_permissions: []
+      table: users
+      update_permissions: []
+    version: 2
+  type: replace_metadata
