@@ -89,7 +89,7 @@ services:
   hasura:
     <<: *base-container
     container_name: hasura
-    image: hasura/graphql-engine:latest.cli-migrations
+    image: hasura/graphql-engine:v1.1.0.cli-migrations
     volumes:
       - ./backups:/hasura-migrations
     depends_on:
