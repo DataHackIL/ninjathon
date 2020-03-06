@@ -4,6 +4,12 @@ type AuthenticationPayload {
     errors: [String]
 }
 
+type VerificationPayload {
+    verified: Boolean!
+    token: String
+    errors: [String]
+}
+
 type Query {
     _authenticationDummy: String
 }
@@ -11,4 +17,5 @@ type Query {
 type Mutation {
     register(email: String!, password: String!): AuthenticationPayload!
     login(email: String!, password: String!): AuthenticationPayload!
+    verify(token: String!): VerificationPayload!
 }
