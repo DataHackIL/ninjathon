@@ -8,7 +8,7 @@ const cache = new InMemoryCache({
 })
 
 const link = createHttpLink({
-    uri: `http://localhost:${process.env.PORT}/graphql`,
+    uri: `http://localhost:${process.env.ENDPOINT_PORT}/graphql`,
     headers: {
         Authorization: 'Bearer ' + cookie.get('token'),
     },

@@ -44,6 +44,8 @@ services:
     build:
       context: ./providers/teams
       dockerfile: Dockerfile
+    environment:
+      ENDPOINT_PORT: "${ENDPOINT_PORT:?ENDPOINT_PORT}"
 
   mailer-service:
     <<: *base-container
