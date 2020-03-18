@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { gql } from 'apollo-boost'
 import { useRouter } from 'next/router'
@@ -14,16 +14,26 @@ export const AddTeamPage = props => {
     const router = useRouter()
     const userId = getUserId()
 
+    useEffect(() => {
+        async function redirectIfHasTeam() {
+            const teamId = await hasTeam(userId)
+            if (teamId) {
+                router.replace(`/team/${teamId}`)
+            }
+        }
+        redirectIfHasTeam()
+    }, [])
+
     async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
         event.preventDefault()
-        const formEle = document.forms[0]
-        const formData = new FormData(formEle)
+        const formElement = document.forms[0]
+        const formData = new FormData(formElement)
         const team: Team = {
             name: formData.get('name').toString(),
             description: formData.get('description').toString(),
         }
-        // TODO do we need to check whether he's already on a team, and block if he is?
-        const teamId = await gqlInsertTeams(team, userId)
+
+        const teamId = await insertTeams(team, userId)
 
         router.replace(`/team/${teamId}`)
     }
@@ -47,7 +57,27 @@ export const AddTeamPage = props => {
     )
 }
 
-async function gqlInsertTeams(team: Team, userId: string) {
+async function hasTeam(userId: string) {
+    // This both creates the team and puts the user into the team_members call.
+    const graphqlMutation = await apolloClient.query({
+        query: gql`
+            query hasTeam($userId: Int!) {
+                team_members(where: { userId: { _eq: $userId } }) {
+                    teamId
+                }
+            }
+        `,
+        variables: { userId },
+    })
+
+    if (graphqlMutation.data.team_members?.length) {
+        return graphqlMutation.data.team_members[0].teamId
+    }
+
+    return null
+}
+
+async function insertTeams(team: Team, userId: string) {
     // This both creates the team and puts the user into the team_members call.
     const graphqlMutation = await apolloClient.mutate({
         mutation: gql`
