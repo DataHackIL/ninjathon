@@ -58,7 +58,6 @@ export const AddTeamPage = props => {
 }
 
 async function hasTeam(userId: string) {
-    // This both creates the team and puts the user into the team_members call.
     const graphqlMutation = await apolloClient.query({
         query: gql`
             query hasTeam($userId: Int!) {
