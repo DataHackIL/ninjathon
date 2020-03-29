@@ -24,7 +24,7 @@ function apply() {
     echo $"Usage: ${0##*/} apply (migration_version or latest)"
   else
     if [ "$version" == "latest" ]; then
-      version=$(hasura migrate status | cut -d' ' -f1 | tail -n+2 | sort -r | head -n1)
+      version=$(hasura migrate status | cut -d' ' -f1 | tail -n+3 | sort -r | head -n1)
     fi
     hasura migrate apply --version "$version"
   fi
