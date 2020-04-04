@@ -1,8 +1,14 @@
 import App from 'next/app'
 import React from 'react'
+import { ApolloProvider } from '@apollo/react-hooks'
+import { apolloClient } from '../lib/apollo'
 
 function TeamsApp({ Component, pageProps }) {
-    return <Component {...pageProps} />
+    return (
+        <ApolloProvider client={apolloClient}>
+            <Component {...pageProps} />
+        </ApolloProvider>
+    )
 }
 
 TeamsApp.getInitialProps = async appContext => {

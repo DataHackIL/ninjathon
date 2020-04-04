@@ -69,7 +69,7 @@ async function hasTeam(userId: string) {
         variables: { userId },
     })
 
-    if (graphqlMutation.data.team_members?.length) {
+    if (graphqlMutation.data.team_members && graphqlMutation.data.length) {
         return graphqlMutation.data.team_members[0].teamId
     }
 
