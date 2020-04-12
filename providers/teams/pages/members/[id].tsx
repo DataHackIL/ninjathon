@@ -1,21 +1,23 @@
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { useRouter } from "next/router"
-import { useQuery } from '@apollo/react-hooks'
-
 import dynamic from "next/dynamic"
 import { gql } from "apollo-boost"
-import React, { ChangeEvent, useEffect } from 'react'
 import { apolloClient } from '../../lib/apollo'
 
 
 const getTeamMembers = gql`
 query getTeamMembers($teamId: Int!) {
     team_members(where: {teamId: {_eq: $teamId}}) {
-      teamId
-      user {
-        email
-      }
+        teamId
+        user {
+            id
+            email
+            name
+            role
+        }
     }
-  }
+}
+    
 `
 
 const getUserByMail = gql`
@@ -35,11 +37,25 @@ query hasTeam($userId: Int!) {
 }
 `
 
-
 const insertTeamMember = gql`
-mutation {
+mutation InsertTeamMembers($objects: [team_members_insert_input!]!) {
     insert_team_members(objects: $objects) {
       affected_rows
+    }
+  }
+`
+
+
+const deleteTeamMember = gql`
+mutation DeleteTeamMembers($uid: Int!, $tid: Int!) {
+    delete_team_members(where: {_and: {userId: {_eq: $uid}, teamId: {_eq: $tid}}}) {
+      returning {
+        user {
+          id
+          email
+        }
+        teamId
+      }
     }
   }
 `
@@ -69,6 +85,8 @@ const addMember = async (teamId: string, userMail: string) => {
     if (data.users.length > 0) {
         const userId = data.users[0].id
         console.log(`userId ${userId}`);
+
+
         const hasTeamId = await checkHasTeam(userId)
         if (hasTeamId) {
             console.log(`${userMail} is already in team ${hasTeamId}`);
@@ -76,7 +94,7 @@ const addMember = async (teamId: string, userMail: string) => {
             // add user to team
             const { data, errors } = await apolloClient.mutate({
                 mutation: insertTeamMember,
-                variables: { objects: {teamId: parseInt(teamId), userId }}
+                variables: { objects: { teamId: parseInt(teamId), userId } }
             })
             if (errors) {
                 alert(errors[0])
@@ -90,13 +108,61 @@ const addMember = async (teamId: string, userMail: string) => {
     }
 }
 
-export const TeamEditMembersPage = props => {
-    const router = useRouter()
-    const teamId: string = (typeof router.query.id === 'string') ? router.query.id : router.query.id[0]
-    let { loading, data, error } = useQuery(getTeamMembers, {variables: {teamId}})
-    if (loading) return <div>Loading...</div>
-    if (error || !data) console.error(error || "Couldn't retrieve data.")
+
+const removeMember = async (memberData) => {
+    // remove user from team
+    console.log('removing user')
+    console.log(memberData);
+
+    const { data, errors } = await apolloClient.mutate({
+        mutation: deleteTeamMember,
+        variables: { uid: memberData.user.id, tid: memberData.teamId }
+    })
     console.log(data)
+    console.log(data.delete_team_members.returning);
+    if (errors) {
+        alert(errors[0])
+        throw errors[0]
+    }
+    return 'success'
+}
+
+
+
+export const TeamEditMembersPage = () => {
+
+
+    const router = useRouter();
+    const [teamId, setTeamId] = useState((typeof router.query.id === 'string') ? router.query.id : router.query.id[0]);
+    const [data, setData] = useState(null)
+    const [teamMembers, setTeamMembers] = useState([]);
+
+    let error;
+    useEffect(() => {
+        console.log("loaded")
+        apolloClient.query({
+            query: getTeamMembers,
+            variables: {
+                teamId
+            }
+        }).then(({ loading, data }) => {
+            if (!loading && data && data.team_members) {
+                setData(data)
+            }
+        }).catch((err) => error = err)
+    }, [])
+
+    useEffect(() => {
+        console.log("2 called")
+        if (data) {
+            setTeamMembers(data.team_members);
+        }
+    }, [data]);
+
+    if (error || !teamMembers) {
+        console.error(error || "Couldn't retrieve data.")
+        return <div>Couldn't retrieve data.</div>
+    }
 
     async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -108,20 +174,15 @@ export const TeamEditMembersPage = props => {
         if (userId) {
             router.replace(`/teams/members/${teamId}`)
         }
-        
-
-
-
     }
 
     return (
         <div>
             <h1>Edit Members Screen</h1>
             <h3>Team {teamId}</h3>
-            <ul>
-                {data.team_members.map((member, i) => <li key={i}>{member.user.email}</li>)}
-            </ul>
-
+            {teamMembers.map((member, i) => (
+                <Member key={i} member={member} teamMembers={teamMembers} setTeamMembers={setTeamMembers} removeMember={removeMember} />
+            ))}
             <h3>Add Member:</h3>
             <form onSubmit={onSubmit}>
                 <div>
@@ -134,6 +195,20 @@ export const TeamEditMembersPage = props => {
         </div>
     )
 }
+
+
+const Member = ({ member, removeMember, teamMembers, setTeamMembers }) => {
+    return (
+        <div>
+            <p>{member.user.email}</p>
+            <button onClick={() => {
+                removeMember(member)
+                setTeamMembers(teamMembers.filter((mem) => mem.user.email !== member.user.email))
+            }}>Remove</button>
+        </div >
+    )
+}
+
 
 export default dynamic(() => import(`./[id]`).then(d => d.TeamEditMembersPage), {
     ssr: false,
