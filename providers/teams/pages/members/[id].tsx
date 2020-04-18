@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { gql } from 'apollo-boost'
 import { apolloClient } from '../../lib/apollo'
+import { useQuery } from '@apollo/react-hooks'
 
 const getTeamMembers = gql`
     query getTeamMembers($teamId: Int!) {
@@ -14,6 +15,30 @@ const getTeamMembers = gql`
                 name
                 role
             }
+        }
+    }
+`
+
+const getCurrentChallenge = gql`
+    query getCurrentChallenge($teamId: Int!) {
+        teams_challenges(where: { teamId: { _eq: $teamId } }) {
+            challenge {
+                name
+                id
+                createdByUserId
+                description
+            }
+        }
+    }
+`
+
+const getChallenges = gql`
+    query getChallenges {
+        challenges {
+            id
+            name
+            description
+            createdByUserId
         }
     }
 `
@@ -105,7 +130,7 @@ const removeMember = async (memberData) => {
     // remove user from team
     const { data, errors } = await apolloClient.mutate({
         mutation: deleteTeamMember,
-        variables: { uid: memberData.user.id, tid: memberData.teamId },
+        variables: { userId: memberData.user.id, teamId: memberData.teamId },
     })
     if (errors) {
         alert(errors[0])
@@ -117,36 +142,47 @@ const removeMember = async (memberData) => {
 export const TeamEditMembersPage = () => {
     const router = useRouter()
     const [teamId, setTeamId] = useState(typeof router.query.id === 'string' ? router.query.id : router.query.id[0])
-    const [data, setData] = useState(null)
+    // const [data, setData] = useState(null)
     const [teamMembers, setTeamMembers] = useState([])
+    const [challenges, setChallenges] = useState([])
+    const [currentChallenge, setCurrentChallenge] = useState("")
 
-    let error
-    useEffect(() => {
-        apolloClient
-            .query({
-                query: getTeamMembers,
-                variables: {
-                    teamId,
-                },
-            })
-            .then(({ loading, data }) => {
-                if (!loading && data && data.team_members) {
-                    setData(data)
-                }
-            })
-            .catch((err) => (error = err))
-    }, [])
+    const {
+        loading: getTeamMembersLoading,
+        data: getTeamMembersData,
+        error: getTeamMembersError,
+    } = useQuery(getTeamMembers, { variables: { teamId } })
+    const { loading: getChallengesLoading, data: getChallengesData, error: getChallengesError } = useQuery(
+        getChallenges
+    )
 
+    const {
+        loading: getCurrentChallengeLoading,
+        data: getCurrentChallengeData,
+        error: getCurrentChallengeError,
+    } = useQuery(getCurrentChallenge, { variables: { teamId } })
+
+    // define hook before checking if loading
     useEffect(() => {
-        if (data) {
-            setTeamMembers(data.team_members)
+        if (getTeamMembersData && getChallengesData && getCurrentChallengeData) {
+            setTeamMembers(getTeamMembersData.team_members)
+            setChallenges(getChallengesData.challenges)
+            setCurrentChallenge(getCurrentChallengeData.teams_challenges[0].challenge.name)
+            console.log(getTeamMembersData)
+            console.log(getTeamMembersData)
+            console.log(getCurrentChallengeData)
         }
-    }, [data])
+    }, [getTeamMembersData, getChallengesData, getCurrentChallengeData])
 
-    if (error || !teamMembers) {
-        console.error(error || "Couldn't retrieve data.")
+    if (getTeamMembersLoading || getChallengesLoading) return <div>Loading...</div>
+    if (getTeamMembersError || !getTeamMembersData) console.error(getTeamMembersError || "Couldn't retrieve data.")
+    if (getChallengesError || !getChallengesData) console.error(getChallengesError || "Couldn't retrieve data.")
+
+    if (getTeamMembersError || !teamMembers) {
+        console.error(getTeamMembersError || "Couldn't retrieve data.")
         return <div>Couldn't retrieve data.</div>
     }
+
 
     async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -160,10 +196,19 @@ export const TeamEditMembersPage = () => {
         }
     }
 
+    async function submitChallenge(event: ChangeEvent<HTMLFormElement>) {
+        event.preventDefault()
+        const formElement = document.forms[1]
+        const formData = new FormData(formElement)
+        console.log(formData.get('challenge'))
+        // change team challenge
+    }
+
     return (
         <div>
-            <h1>Edit Members Screen</h1>
+            <h1>Team Management Screen</h1>
             <h3>Team {teamId}</h3>
+            <h3>Members</h3>
             {teamMembers.map((member, i) => (
                 <Member
                     key={i}
@@ -178,6 +223,20 @@ export const TeamEditMembersPage = () => {
                 <div>
                     <label htmlFor="name">Email</label>
                     <input type="text" name="email" />
+                </div>
+
+                <input type="submit" />
+            </form>
+
+            <h3>Challenge: {currentChallenge}</h3>
+            <form onSubmit={submitChallenge}>
+                <div>
+                    <label htmlFor="name">Choose </label>
+                    <select id="challenge" name="challenge">
+                        {challenges.map((comp, i) => (
+                            <Challenge key={i} challenge={comp} />
+                        ))}
+                    </select>
                 </div>
 
                 <input type="submit" />
@@ -200,6 +259,10 @@ const Member = ({ member, removeMember, teamMembers, setTeamMembers }) => {
             </button>
         </div>
     )
+}
+
+const Challenge = ({ challenge }) => {
+    return <option value={challenge.name}>{challenge.name}</option>
 }
 
 export default dynamic(() => import(`./[id]`).then((d) => d.TeamEditMembersPage), {
