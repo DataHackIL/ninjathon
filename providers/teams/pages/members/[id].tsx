@@ -3,7 +3,8 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { gql } from 'apollo-boost'
 import { apolloClient } from '../../lib/apollo'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/react-hooks'
+import { VariablesAreInputTypes } from 'graphql/validation/rules/VariablesAreInputTypes'
 
 const getTeamMembers = gql`
     query getTeamMembers($teamId: Int!) {
@@ -43,6 +44,18 @@ const getChallenges = gql`
     }
 `
 
+const getTeamChallenge = gql`
+    query getTeamChallenge($teamId: Int!) {
+        teams_challenges(where: { teamId: { _eq: $teamId } }) {
+            challenge {
+                id
+                name
+            }
+            teamId
+        }
+    }
+`
+
 const getUserByMail = gql`
     query getUsers($userMail: String!) {
         users(where: { email: { _eq: $userMail } }) {
@@ -62,7 +75,43 @@ const hasTeam = gql`
 const insertTeamMember = gql`
     mutation InsertTeamMembers($objects: [team_members_insert_input!]!) {
         insert_team_members(objects: $objects) {
-            affected_rows
+            returning {
+                teamId
+                user {
+                  id
+                  email
+                  name
+                  role
+                }
+            }
+        }
+    }
+`
+
+const insertTeamChallenge = gql`
+    mutation InsertTeamChallenge($teamId: Int!, $challengeId: Int!) {
+        insert_teams_challenges(objects: { teamId: $teamId, challengeId: $challengeId }) {
+            returning {
+                challenge {
+                    name
+                    id
+                }
+                teamId
+            }
+        }
+    }
+`
+
+const updateTeamChallenge = gql`
+    mutation updateTeamChallenges($teamId: Int!, $challengeId: Int!) {
+        update_teams_challenges(where: { teamId: { _eq: $teamId } }, _set: { challengeId: $challengeId }) {
+            returning {
+                challengeId
+                challenge {
+                    name
+                }
+                teamId
+            }
         }
     }
 `
@@ -108,17 +157,28 @@ const addMember = async (teamId: string, userMail: string) => {
         const hasTeamId = await checkHasTeam(userId)
         if (hasTeamId) {
             console.log(`${userMail} is already in team ${hasTeamId}`)
+            // handle this
         } else {
             // add user to team
             const { data, errors } = await apolloClient.mutate({
                 mutation: insertTeamMember,
                 variables: { objects: { teamId: parseInt(teamId), userId } },
+                refetchQueries: [
+                    {
+                        query: getTeamMembers,
+                        variables: { teamId },
+                    },
+                    {
+                        query: hasTeam,
+                        variables: { userId }
+                    }
+                ]
             })
             if (errors) {
                 alert(errors[0])
                 throw errors[0]
             }
-            return 'success'
+            return data.insert_team_members.returning[0]
         }
     } else {
         // user not found
@@ -129,8 +189,19 @@ const addMember = async (teamId: string, userMail: string) => {
 const removeMember = async (memberData) => {
     // remove user from team
     const { data, errors } = await apolloClient.mutate({
+
         mutation: deleteTeamMember,
         variables: { userId: memberData.user.id, teamId: memberData.teamId },
+        refetchQueries: [
+            {
+                query: getTeamMembers,
+                variables: { teamId: memberData.teamId  },
+            },
+            {
+                query: hasTeam,
+                variables: { userId: memberData.user.id  }
+            }
+        ]
     })
     if (errors) {
         alert(errors[0])
@@ -139,13 +210,52 @@ const removeMember = async (memberData) => {
     return 'success'
 }
 
+const updateChallenge = async (challenges, newChallenge, teamId) => {
+    // check if team has challenge:
+    const { data, errors } = await apolloClient.query({ query: getTeamChallenge, variables: { teamId } })
+    if (data) {
+        const challengeId = challenges.find((chal) => chal.name === newChallenge).id
+        if (data.teams_challenges.length == 1) {
+            await apolloClient.mutate({
+                mutation: updateTeamChallenge,
+                variables: { teamId, challengeId },
+                refetchQueries: [
+                    {
+                        query: getTeamChallenge,
+                        variables: { teamId },
+                    },
+                ],
+            })
+        } else if (data.teams_challenges.length == 0) {
+            await apolloClient.mutate({
+                mutation: insertTeamChallenge,
+                variables: { teamId, challengeId },
+                refetchQueries: [
+                    {
+                        query: getTeamChallenge,
+                        variables: { teamId },
+                    },
+                ],
+            })
+        } else {
+            console.error('team has multiple challenges')
+            // There are multiple challenges for a given team, how to handle?
+        }
+    }
+    if (errors) {
+        alert(errors[0])
+        throw errors[0]
+    }
+    return newChallenge;
+}
+
 export const TeamEditMembersPage = () => {
     const router = useRouter()
     const [teamId, setTeamId] = useState(typeof router.query.id === 'string' ? router.query.id : router.query.id[0])
     // const [data, setData] = useState(null)
     const [teamMembers, setTeamMembers] = useState([])
     const [challenges, setChallenges] = useState([])
-    const [currentChallenge, setCurrentChallenge] = useState("")
+    const [currentChallenge, setCurrentChallenge] = useState('')
 
     const {
         loading: getTeamMembersLoading,
@@ -167,10 +277,10 @@ export const TeamEditMembersPage = () => {
         if (getTeamMembersData && getChallengesData && getCurrentChallengeData) {
             setTeamMembers(getTeamMembersData.team_members)
             setChallenges(getChallengesData.challenges)
-            setCurrentChallenge(getCurrentChallengeData.teams_challenges[0].challenge.name)
-            console.log(getTeamMembersData)
-            console.log(getTeamMembersData)
-            console.log(getCurrentChallengeData)
+            console.log(getCurrentChallengeData.teams_challenges)
+            if (getCurrentChallengeData.teams_challenges && getCurrentChallengeData.teams_challenges.length != 0) {
+                setCurrentChallenge(getCurrentChallengeData.teams_challenges[0].challenge.name)
+            }
         }
     }, [getTeamMembersData, getChallengesData, getCurrentChallengeData])
 
@@ -183,16 +293,15 @@ export const TeamEditMembersPage = () => {
         return <div>Couldn't retrieve data.</div>
     }
 
-
     async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
         event.preventDefault()
         const formElement = document.forms[0]
         const formData = new FormData(formElement)
 
         const userMail = formData.get('email').toString()
-        const userId = await addMember(teamId, userMail)
-        if (userId) {
-            router.replace(`/teams/members/${teamId}`)
+        const newTeamMember = await addMember(teamId, userMail)
+        if (newTeamMember) {
+            setTeamMembers([...teamMembers, newTeamMember])
         }
     }
 
@@ -200,15 +309,16 @@ export const TeamEditMembersPage = () => {
         event.preventDefault()
         const formElement = document.forms[1]
         const formData = new FormData(formElement)
-        console.log(formData.get('challenge'))
-        // change team challenge
+        const newChallenge: string = formData.get('challenge').toString()
+        await updateChallenge(challenges, newChallenge, teamId)
+        setCurrentChallenge(newChallenge);
     }
 
     return (
         <div>
             <h1>Team Management Screen</h1>
-            <h3>Team {teamId}</h3>
-            <h3>Members</h3>
+            <h3>Team ID {teamId}</h3>
+            <h3>Team Members</h3>
             {teamMembers.map((member, i) => (
                 <Member
                     key={i}
@@ -228,10 +338,10 @@ export const TeamEditMembersPage = () => {
                 <input type="submit" />
             </form>
 
-            <h3>Challenge: {currentChallenge}</h3>
+            <h3>Team Challenge: {currentChallenge}</h3>
             <form onSubmit={submitChallenge}>
                 <div>
-                    <label htmlFor="name">Choose </label>
+                    <label htmlFor="name">Change challenge </label>
                     <select id="challenge" name="challenge">
                         {challenges.map((comp, i) => (
                             <Challenge key={i} challenge={comp} />
