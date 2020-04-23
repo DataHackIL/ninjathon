@@ -9,7 +9,7 @@ export const jwtAlgorithm = 'HS512'
 const pool = new Pool({
     host: 'postgres',
     user: 'postgres',
-    password: 'changeme',
+    password: 'password',
     port: 5432,
 })
 

@@ -17,6 +17,7 @@ const QUERY = gql`
             name
             team_members {
                 user {
+                    email
                     name
                 }
             }
@@ -30,7 +31,7 @@ const QUERY = gql`
     }
 `
 
-export const TeamProfilePage = props => {
+export const TeamProfilePage = (props) => {
     const router = useRouter()
     const teamId = router.query.id
     const { loading, data, error } = useQuery(QUERY, { variables: { teamId } })
@@ -46,16 +47,16 @@ export const TeamProfilePage = props => {
             <div>
                 <h3>Team Members</h3>
                 <ul>
-                    {team_members.map(tm => (
-                        <li>{tm.user.name}</li>
+                    {team_members.map((tm, i) => (
+                        <li key={i}>{tm.user.name || tm.user.email}</li>
                     ))}
                 </ul>
             </div>
             <div>
                 <h3>Challenges the team participates in</h3>
                 <ul>
-                    {teams_challenges.map(tc => (
-                        <li>
+                    {teams_challenges.map((tc, i) => (
+                        <li key={i}>
                             <b>{tc.challenge.name}</b> - {tc.challenge.description}
                         </li>
                     ))}
@@ -65,6 +66,6 @@ export const TeamProfilePage = props => {
     )
 }
 
-export default dynamic(() => import('./[id]').then(d => d.TeamProfilePage), {
+export default dynamic(() => import('./[id]').then((d) => d.TeamProfilePage), {
     ssr: false,
 })
