@@ -18,7 +18,7 @@ export const AddTeamPage = props => {
         async function redirectIfHasTeam() {
             const teamId = await hasTeam(userId)
             if (teamId) {
-                router.replace(`/team/${teamId}`)
+                router.replace(`/teams/${teamId}`)
             }
         }
         redirectIfHasTeam()
