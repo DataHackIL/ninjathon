@@ -37,7 +37,6 @@ export const TeamProfilePage = props => {
     const { loading, data, error } = useQuery(QUERY, { variables: { teamId } })
     if (loading) return <div>Loading...</div>
     if (error || !data) console.error(error || "Couldn't retrieve data.")
-    console.log(data)
     if (!data.teams_by_pk) return <div>Team not found...</div>
     const { description, id, name, team_members, teams_challenges } = data.teams_by_pk
 
