@@ -17,6 +17,7 @@ const QUERY = gql`
             name
             team_members {
                 user {
+                    email
                     name
                 }
             }
@@ -36,6 +37,7 @@ export const TeamProfilePage = props => {
     const { loading, data, error } = useQuery(QUERY, { variables: { teamId } })
     if (loading) return <div>Loading...</div>
     if (error || !data) console.error(error || "Couldn't retrieve data.")
+    console.log(data)
     if (!data.teams_by_pk) return <div>Team not found...</div>
     const { description, id, name, team_members, teams_challenges } = data.teams_by_pk
 
@@ -46,16 +48,16 @@ export const TeamProfilePage = props => {
             <div>
                 <h3>Team Members</h3>
                 <ul>
-                    {team_members.map(tm => (
-                        <li>{tm.user.name}</li>
+                    {team_members.map((tm, i) => (
+                        <li key={i} >{tm.user.name || tm.user.email}</li>
                     ))}
                 </ul>
             </div>
             <div>
                 <h3>Challenges the team participates in</h3>
                 <ul>
-                    {teams_challenges.map(tc => (
-                        <li>
+                    {teams_challenges.map((tc, i) => (
+                        <li key={i}>
                             <b>{tc.challenge.name}</b> - {tc.challenge.description}
                         </li>
                     ))}
