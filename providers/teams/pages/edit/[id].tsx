@@ -78,10 +78,10 @@ const insertTeamMember = gql`
             returning {
                 teamId
                 user {
-                  id
-                  email
-                  name
-                  role
+                    id
+                    email
+                    name
+                    role
                 }
             }
         }
@@ -170,9 +170,9 @@ const addMember = async (teamId: string, userMail: string) => {
                     },
                     {
                         query: hasTeam,
-                        variables: { userId }
-                    }
-                ]
+                        variables: { userId },
+                    },
+                ],
             })
             if (errors) {
                 alert(errors[0])
@@ -189,19 +189,18 @@ const addMember = async (teamId: string, userMail: string) => {
 const removeMember = async (memberData) => {
     // remove user from team
     const { data, errors } = await apolloClient.mutate({
-
         mutation: deleteTeamMember,
         variables: { userId: memberData.user.id, teamId: memberData.teamId },
         refetchQueries: [
             {
                 query: getTeamMembers,
-                variables: { teamId: memberData.teamId  },
+                variables: { teamId: memberData.teamId },
             },
             {
                 query: hasTeam,
-                variables: { userId: memberData.user.id  }
-            }
-        ]
+                variables: { userId: memberData.user.id },
+            },
+        ],
     })
     if (errors) {
         alert(errors[0])
@@ -246,7 +245,7 @@ const updateChallenge = async (challenges, newChallenge, teamId) => {
         alert(errors[0])
         throw errors[0]
     }
-    return newChallenge;
+    return newChallenge
 }
 
 export const TeamEditMembersPage = () => {
@@ -311,7 +310,7 @@ export const TeamEditMembersPage = () => {
         const formData = new FormData(formElement)
         const newChallenge: string = formData.get('challenge').toString()
         await updateChallenge(challenges, newChallenge, teamId)
-        setCurrentChallenge(newChallenge);
+        setCurrentChallenge(newChallenge)
     }
 
     return (
