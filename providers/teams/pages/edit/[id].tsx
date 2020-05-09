@@ -48,8 +48,10 @@ const getTeamChallenge = gql`
     query getTeamChallenge($teamId: Int!) {
         teams_challenges(where: { teamId: { _eq: $teamId } }) {
             challenge {
-                id
                 name
+                id
+                createdByUserId
+                description
             }
             teamId
         }
