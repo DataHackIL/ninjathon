@@ -35,7 +35,7 @@ export const AddTeamPage = props => {
 
         const teamId = await insertTeams(team, userId)
 
-        router.replace(`/team/${teamId}`)
+        router.replace(`/teams/profile/${teamId}`)
     }
 
     return (
