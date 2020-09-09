@@ -4,8 +4,9 @@ The all-in-one DataHack management platform, from registration to communications
 
 ## Running the development environment
 1. Setup the project by running `./scripts/setup`
-2. Migrate the database schemas by running `./scripts/migration apply latest`
-3. If you want to populate the database then run `./scripts/backup restore lastest`
+2. boot containers `docker-compose up`
+3. Migrate the database schemas by running `./scripts/migration apply latest`
+4. If you want to populate the database then run `./scripts/backup restore lastest`
 
 > *Note:* if you want to populate the database from a different version/file run `./scripts/backup restore <file path>`
 
@@ -34,6 +35,18 @@ In order to lint the project for code quality issues you could either run `./scr
 ## Common Issues
 
 - On macOS, if you get the error `realpath: command not found` then you should install coreutils which could be installed through brew by running `brew install coreutils`
+- Hasura fails to start. Run `docker-compose restart hasura`.
+
+### hasura migration issues
+If step 3 (Migrate the database schemas by running `./scripts/migration apply latest`) fails. Try the following:
+- Make sure containers are up. `docker-compose up`
+- open a new terminal and run. `docker exec -it hasura sh`
+- go to hasura-migrations. `cd hasura-migrations`
+- Copy the last printed version number (e.g. 1582141486977).
+- Run `hasura-cli migrate apply --version 1582141486977`
+
+You're all set.
+
 
 ## Contributing
 
